@@ -69,7 +69,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="flex flex-col pt-10 h-[90vh] bg-gray-900">
+    <div className="flex flex-col pt-10 h-[95vh] bg-gray-900">
       {/* Header Section */}
       <Header />
 
