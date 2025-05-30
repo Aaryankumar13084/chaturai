@@ -31,7 +31,7 @@ const Header = () => {
         </div>
 
         {/* Title and New Chat */}
-        <div className='flex items-center place-content-between h-full w-[60%]'>
+        <div className='flex items-center place-content-between h-full w-[65%]'>
           <h1 className="text-2xl">ChaturAi</h1>
           <h1
             onClick={handleClick}
