@@ -35,7 +35,7 @@ const Header = () => {
           <h1 className="text-2xl">ChaturAi</h1>
           <h1
             onClick={handleClick}
-            className="text-xl bg-gray-700 px-2 py-px rounded mx-2 cursor-pointer"
+            className="text-xl bg-gray-700 px-2  rounded mr-1 cursor-pointer"
           >
             New Chat
           </h1>
