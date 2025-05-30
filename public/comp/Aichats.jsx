@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 
 const Aichats = ({ text }) => {
   return (
-    <div className="flex items-start ml-1">
+    <div className="flex items-start space-x-2 w-[80%]">
       <div className="bg-blue-600 text-white p-2 rounded-full">
         <svg
           xmlns="http://www.w3.org/2000/svg"
