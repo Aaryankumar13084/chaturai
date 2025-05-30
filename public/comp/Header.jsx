@@ -2,7 +2,7 @@ import React from 'react'
 
 const Header = () => {
   return (<>
-  <div className='flex fixed top-0 right-0 left-0 text-white items-center place-content-between w-full bg-gray-900 '>
+  <div className='flex fixed top-0 right-0 left-0 text-white items-center place-content-between w-full bg-gray-800 border-t border-gray-700 '>
   <div>
       <img className='w-[60px]' src="https://i.ibb.co/pDFdf2y/icons8-menu-64.png" />
   </div>
