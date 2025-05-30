@@ -7,7 +7,7 @@ import Userchat from './comp/Userchat';
 // Multiple API Keys
 const GEMINI_API_KEYS = [
   'AIzaSyDz3YIF97oOAc6DfKDESwV1Kv_PqQnOvFQ',
-  'AIzaSyXXXXXX_Another_Key_1234567',
+  'AIzaSyBbnp5cWE5dPYmxQZMbJ3mKwq2fcqjLCno',
   'AIzaSyDLEO_ekHu_HUwZz82QfmGqiKUny_Oxz-U'
 ];
 
