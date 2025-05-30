@@ -4,7 +4,12 @@ import Header from './comp/Header';
 import Aichats from './comp/Aichats';
 import Userchat from './comp/Userchat';
 
-const GEMINI_API_KEY = 'AIzaSyDLEO_ekHu_HUwZz82QfmGqiKUny_Oxz-U';
+// Multiple API Keys
+const GEMINI_API_KEYS = [
+  'AIzaSyDLEO_ekHu_HUwZz82QfmGqiKUny_Oxz-',
+  'AIzaSyXXXXXX_Another_Key_1234567',
+  'AIzaSyDLEO_ekHu_HUwZz82QfmGqiKUny_Oxz-U'
+];
 
 const HomePage = () => {
   // State management
@@ -13,47 +18,61 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  // API call to Gemini
+  // API call to Gemini with retry logic
   const getanswer = async (prompt) => {
     if (!prompt.trim()) return;
-    
+
     setIsLoading(true);
     setChats((prev) => [...prev, { sender: 'user', text: prompt }]);
     setInputValue('');
 
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+    let success = false;
+
+    for (let i = 0; i < GEMINI_API_KEYS.length; i++) {
+      const apiKey = GEMINI_API_KEYS[i];
+
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          }
+        );
+
+        if (!response.ok) {
+          console.warn(`API Key ${i + 1} failed with status: ${response.status}`);
+          continue; // Try next key
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+
+        if (!data.candidates?.[0]?.content) {
+          console.warn(`API Key ${i + 1} returned invalid structure`);
+          continue; // Try next key
+        }
+
+        const answer = data.candidates[0].content.parts[0].text;
+        setChats((prev) => [...prev, { sender: 'bot', text: answer }]);
+        success = true;
+        break; // Exit loop if successful
+      } catch (error) {
+        console.error(`API Key ${i + 1} error:`, error);
+        // Try next key
       }
-
-      const data = await response.json();
-      
-      if (!data.candidates?.[0]?.content) {
-        throw new Error('Invalid response structure from API');
-      }
-
-      const answer = data.candidates[0].content.parts[0].text;
-      setChats((prev) => [...prev, { sender: 'bot', text: answer }]);
-    } catch (error) {
-      console.error('Error:', error);
-      setChats((prev) => [...prev, { 
-        sender: 'bot', 
-        text: 'Sorry, I encountered an error while processing your request.' 
-      }]);
-    } finally {
-      setIsLoading(false);
     }
+
+    if (!success) {
+      setChats((prev) => [
+        ...prev,
+        { sender: 'bot', text: 'Sorry, all API keys failed. Please try again later.' }
+      ]);
+    }
+
+    setIsLoading(false);
   };
 
   // Auto-scroll to bottom
@@ -82,7 +101,7 @@ const HomePage = () => {
             <Aichats key={index} text={chat.text} />
           )
         )}
-        
+
         {/* Loading Indicator */}
         {isLoading && (
           <div className="flex items-center p-4">
@@ -93,7 +112,7 @@ const HomePage = () => {
             </div>
           </div>
         )}
-        
+
         <div ref={chatEndRef}></div>
       </div>
 
@@ -109,7 +128,7 @@ const HomePage = () => {
             placeholder="Type your message..."
             aria-label="Type your message"
           />
-          
+
           <button
             onClick={() => inputValue.trim() && !isLoading && getanswer(inputValue.trim())}
             disabled={isLoading || !inputValue.trim()}
