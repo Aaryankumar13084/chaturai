@@ -13,9 +13,7 @@ const Header = () => {
 
   return (
     <>
-      <div className='flex fixed top-0 right-0 left-0 text-white items-center justify-between w-full bg-gray-800 border-t border-gray-700 p-2'>
-
-        {/* Left side message */}
+     {/* Left side message */}
         <div className='w-[150px]'>
           {showMsg && (
             <div className='bg-green-600 text-white px-3 py-1 rounded flex fixed top-0 right-0 left-0'>
@@ -23,6 +21,10 @@ const Header = () => {
             </div>
           )}
         </div>
+
+      <div className='flex fixed top-0 right-0 left-0 text-white items-center justify-between w-full bg-gray-800 border-t border-gray-700 p-2'>
+
+   
 
         {/* Image */}
         <div>
