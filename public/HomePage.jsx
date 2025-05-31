@@ -17,22 +17,22 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  // API call to Gemini with retry logic and context history
+  // API call with updated context handling
   const getanswer = async (prompt) => {
     if (!prompt.trim()) return;
 
     setIsLoading(true);
-    setChats((prev) => [...prev, { sender: 'user', text: prompt }]);
+
+    // Prepare updated chats with the new user message
+    const updatedChats = [...chats, { sender: 'user', text: prompt }];
+    setChats(updatedChats);  // Update UI immediately
     setInputValue('');
 
-    // Prepare chat history as context (last 5 messages) 
-    const contextMessages = [
-      ...chats.slice(-5).map(chat => ({
-        role: chat.sender === 'user' ? 'user' : 'model',
-        text: chat.text
-      })),
-      { role: 'user', text: prompt }
-    ];
+    // Prepare context messages (last 5 messages + prompt)
+    const contextMessages = updatedChats.slice(-5).map(chat => ({
+      role: chat.sender === 'user' ? 'user' : 'model',
+      text: chat.text
+    }));
 
     let success = false;
 
@@ -84,10 +84,12 @@ const HomePage = () => {
     setIsLoading(false);
   };
 
+  // Auto-scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chats]);
 
+  // Handle Enter key press
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && inputValue.trim() && !isLoading) {
       getanswer(inputValue.trim());
