@@ -4,7 +4,6 @@ import Header from './comp/Header';
 import Aichats from './comp/Aichats';
 import Userchat from './comp/Userchat';
 
-// Multiple API Keys
 const GEMINI_API_KEYS = [
   'AIzaSyDz3YIF97oOAc6DfKDESwV1Kv_PqQnOvFQ',
   'AIzaSyBbnp5cWE5dPYmxQZMbJ3mKwq2fcqjLCno',
@@ -17,21 +16,20 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  // API call with updated context handling
   const getanswer = async (prompt) => {
     if (!prompt.trim()) return;
 
     setIsLoading(true);
 
-    // Prepare updated chats with the new user message
+    // Create updated chats including user prompt
     const updatedChats = [...chats, { sender: 'user', text: prompt }];
-    setChats(updatedChats);  // Update UI immediately
+    setChats(updatedChats);
     setInputValue('');
 
-    // Prepare context messages (last 5 messages + prompt)
-    const contextMessages = updatedChats.slice(-5).map(chat => ({
-      role: chat.sender === 'user' ? 'user' : 'model',
-      text: chat.text
+    // Create proper contents structure for Gemini
+    const contents = updatedChats.slice(-5).map((msg) => ({
+      role: msg.sender === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.text }]
     }));
 
     let success = false;
@@ -41,15 +39,11 @@ const HomePage = () => {
 
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: contextMessages.map(msg => ({
-                parts: [{ text: msg.text }]
-              }))
-            })
+            body: JSON.stringify({ contents })
           }
         );
 
@@ -60,7 +54,7 @@ const HomePage = () => {
 
         const data = await response.json();
 
-        if (!data.candidates?.[0]?.content) {
+        if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
           console.warn(`API Key ${i + 1} returned invalid structure`);
           continue;
         }
@@ -84,12 +78,10 @@ const HomePage = () => {
     setIsLoading(false);
   };
 
-  // Auto-scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chats]);
 
-  // Handle Enter key press
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && inputValue.trim() && !isLoading) {
       getanswer(inputValue.trim());
@@ -99,7 +91,6 @@ const HomePage = () => {
   return (
     <div className="flex flex-col pt-10 h-[99vh] bg-gray-900">
       <Header />
-
       <div className="flex-1 overflow-y-auto p-7 space-y-4">
         {chats.map((chat, index) =>
           chat.sender === 'user' ? (
@@ -108,7 +99,6 @@ const HomePage = () => {
             <Aichats key={index} text={chat.text} />
           )
         )}
-
         {isLoading && (
           <div className="flex items-center p-4">
             <div className="flex space-x-2">
@@ -118,7 +108,6 @@ const HomePage = () => {
             </div>
           </div>
         )}
-
         <div ref={chatEndRef}></div>
       </div>
 
@@ -133,26 +122,16 @@ const HomePage = () => {
             placeholder="Type your message..."
             aria-label="Type your message"
           />
-
           <button
             onClick={() => inputValue.trim() && !isLoading && getanswer(inputValue.trim())}
             disabled={isLoading || !inputValue.trim()}
             className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Send message"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" 
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>
         </div>
