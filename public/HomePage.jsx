@@ -4,6 +4,7 @@ import Header from './comp/Header';
 import Aichats from './comp/Aichats';
 import Userchat from './comp/Userchat';
 
+// Multiple API Keys
 const GEMINI_API_KEYS = [
   'AIzaSyDz3YIF97oOAc6DfKDESwV1Kv_PqQnOvFQ',
   'AIzaSyBbnp5cWE5dPYmxQZMbJ3mKwq2fcqjLCno',
@@ -11,26 +12,19 @@ const GEMINI_API_KEYS = [
 ];
 
 const HomePage = () => {
+  // State management
   const [inputValue, setInputValue] = useState('');
   const [chats, setChats] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
 
+  // API call to Gemini with retry logic
   const getanswer = async (prompt) => {
     if (!prompt.trim()) return;
 
     setIsLoading(true);
-
-    // Create updated chats including user prompt
-    const updatedChats = [...chats, { sender: 'user', text: prompt }];
-    setChats(updatedChats);
+    setChats((prev) => [...prev, { sender: 'user', text: prompt }]);
     setInputValue('');
-
-    // Create proper contents structure for Gemini
-    const contents = updatedChats.slice(-5).map((msg) => ({
-      role: msg.sender === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
-    }));
 
     let success = false;
 
@@ -39,32 +33,35 @@ const HomePage = () => {
 
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents })
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
           }
         );
 
         if (!response.ok) {
           console.warn(`API Key ${i + 1} failed with status: ${response.status}`);
-          continue;
+          continue; // Try next key
         }
 
         const data = await response.json();
 
-        if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        if (!data.candidates?.[0]?.content) {
           console.warn(`API Key ${i + 1} returned invalid structure`);
-          continue;
+          continue; // Try next key
         }
 
         const answer = data.candidates[0].content.parts[0].text;
         setChats((prev) => [...prev, { sender: 'bot', text: answer }]);
         success = true;
-        break;
+        break; // Exit loop if successful
       } catch (error) {
         console.error(`API Key ${i + 1} error:`, error);
+        // Try next key
       }
     }
 
@@ -78,10 +75,12 @@ const HomePage = () => {
     setIsLoading(false);
   };
 
+  // Auto-scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chats]);
 
+  // Handle Enter key press
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && inputValue.trim() && !isLoading) {
       getanswer(inputValue.trim());
@@ -90,7 +89,10 @@ const HomePage = () => {
 
   return (
     <div className="flex flex-col pt-10 h-[99vh] bg-gray-900">
+      {/* Header Section */}
       <Header />
+
+      {/* Chat Display Area */}
       <div className="flex-1 overflow-y-auto p-7 space-y-4">
         {chats.map((chat, index) =>
           chat.sender === 'user' ? (
@@ -99,6 +101,8 @@ const HomePage = () => {
             <Aichats key={index} text={chat.text} />
           )
         )}
+
+        {/* Loading Indicator */}
         {isLoading && (
           <div className="flex items-center p-4">
             <div className="flex space-x-2">
@@ -108,9 +112,11 @@ const HomePage = () => {
             </div>
           </div>
         )}
+
         <div ref={chatEndRef}></div>
       </div>
 
+      {/* Input Section */}
       <div className="p-4 bg-gray-800 border-t border-gray-700">
         <div className="flex items-center space-x-2">
           <input
@@ -122,16 +128,26 @@ const HomePage = () => {
             placeholder="Type your message..."
             aria-label="Type your message"
           />
+
           <button
             onClick={() => inputValue.trim() && !isLoading && getanswer(inputValue.trim())}
             disabled={isLoading || !inputValue.trim()}
             className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Send message"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
-              viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-6 w-6" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" 
+              />
             </svg>
           </button>
         </div>
@@ -141,3 +157,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
