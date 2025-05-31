@@ -25,7 +25,7 @@ const HomePage = () => {
     setChats((prev) => [...prev, { sender: 'user', text: prompt }]);
     setInputValue('');
 
-    // Prepare chat history as context (last 5 messages)
+    // Prepare chat history as context (last 5 messages) 
     const contextMessages = [
       ...chats.slice(-5).map(chat => ({
         role: chat.sender === 'user' ? 'user' : 'model',
