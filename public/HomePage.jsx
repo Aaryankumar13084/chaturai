@@ -3,26 +3,13 @@ import Header from './comp/Header';
 import Aichats from './comp/Aichats';
 import Userchat from './comp/Userchat';
 
-// API Keys - In production, use environment variables
 const GEMINI_API_KEYS = [
   'AIzaSyDz3YIF97oOAc6DfKDESwV1Kv_PqQnOvFQ',
   'AIzaSyBbnp5cWE5dPYmxQZMbJ3mKwq2fcqjLCno',
   'AIzaSyDLEO_ekHu_HUwZz82QfmGqiKUny_Oxz-U'
 ];
 
-// Enhanced common responses with variations
-const COMMON_RESPONSES = {
-  'hi': 'Hi there! How can I help you today?',
-  'hello': 'Hello! What can I do for you?',
-  'hey': 'Hey! How can I assist you?',
-  'how are you': "I'm just a program, but I'm functioning perfectly! How can I help?",
-  'how are you doing': "I don't have feelings, but I'm ready to help! What do you need?",
-  "what's up": "Not much, just waiting to help you! What's on your mind?",
-  'hi there': 'Hi there! What brings you here today?'
-};
-
 const HomePage = () => {
-  // State management
   const [inputValue, setInputValue] = useState('');
   const [chats, setChats] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,49 +18,26 @@ const HomePage = () => {
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Enhanced cached response checker
-  const getCachedResponse = (prompt) => {
-    const lowerPrompt = prompt.toLowerCase().trim();
-    
-    // Check exact matches first
-    if (COMMON_RESPONSES[lowerPrompt]) {
-      return COMMON_RESPONSES[lowerPrompt];
-    }
-    
-    // Check for partial matches
-    for (const [key, response] of Object.entries(COMMON_RESPONSES)) {
-      if (lowerPrompt.includes(key)) {
-        return response;
-      }
-    }
-    
-    return null;
+  // Prepare conversation history for context
+  const getConversationContext = () => {
+    return chats
+      .map(chat => `${chat.sender === 'user' ? 'User' : 'AI'}: ${chat.text}`)
+      .join('\n');
   };
 
-  // Robust API call with key rotation and retries
   const getAnswer = async (prompt) => {
     if (!prompt.trim()) return;
 
     setIsLoading(true);
     setError(null);
-    
-    // Add user message immediately
     setChats(prev => [...prev, { sender: 'user', text: prompt }]);
     setInputValue('');
 
-    // Check cache before API call
-    const cachedResponse = getCachedResponse(prompt);
-    if (cachedResponse) {
-      setTimeout(() => {
-        setChats(prev => [...prev, { sender: 'bot', text: cachedResponse }]);
-        setIsLoading(false);
-      }, 500); // Small delay for natural feel
-      return;
-    }
+    const conversationContext = getConversationContext();
+    const fullPrompt = `This is our conversation so far:\n${conversationContext}\n\nUser: ${prompt}\nAI:`;
 
     let retries = 0;
     const maxRetries = GEMINI_API_KEYS.length * 2;
-    let lastError = null;
 
     while (retries < maxRetries) {
       const apiKey = GEMINI_API_KEYS[currentKeyIndex];
@@ -86,70 +50,54 @@ const HomePage = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{
-                parts: [{ text: prompt }]
+                parts: [{ text: fullPrompt }]
               }]
             })
           }
         );
 
         if (response.status === 429) {
-          // Rate limited - rotate key and retry
           setCurrentKeyIndex((prev) => (prev + 1) % GEMINI_API_KEYS.length);
           await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)));
           retries++;
           continue;
         }
 
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
 
         const data = await response.json();
+        const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                      "I couldn't process that request. Please try again.";
         
-        if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-          throw new Error('Invalid response structure from API');
-        }
-
-        const answer = data.candidates[0].content.parts[0].text;
         setChats(prev => [...prev, { sender: 'bot', text: answer }]);
-        
-        // Rotate key after successful request
         setCurrentKeyIndex((prev) => (prev + 1) % GEMINI_API_KEYS.length);
         setIsLoading(false);
         return;
 
       } catch (error) {
-        lastError = error;
         console.error(`Attempt ${retries + 1} failed:`, error);
-        
-        // Rotate key on error
         setCurrentKeyIndex((prev) => (prev + 1) % GEMINI_API_KEYS.length);
         retries++;
-        
-        // Exponential backoff
         await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)));
       }
     }
 
-    // All attempts failed
     setIsLoading(false);
     setError('All API keys are currently unavailable. Please try again later.');
     setChats(prev => [
       ...prev,
       { 
         sender: 'bot', 
-        text: "I'm having trouble connecting right now. You can try again in a little while, or ask me something else."
+        text: "I'm having trouble connecting right now. Please try again later."
       }
     ]);
   };
 
-  // Auto-scroll and focus management
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     if (!isLoading) inputRef.current?.focus();
   }, [chats, isLoading]);
 
-  // Input handling
   const handleSubmit = (e) => {
     e.preventDefault();
     if (inputValue.trim() && !isLoading) {
@@ -170,15 +118,9 @@ const HomePage = () => {
       <div className="flex-1 overflow-y-auto p-4 md:p-7 space-y-4">
         {chats.map((chat, index) => (
           chat.sender === 'user' ? (
-            <Userchat 
-              key={`user-${index}-${chat.text}`} 
-              usertext={chat.text} 
-            />
+            <Userchat key={`user-${index}-${chat.text}`} usertext={chat.text} />
           ) : (
-            <Aichats 
-              key={`bot-${index}-${chat.text}`} 
-              text={chat.text} 
-            />
+            <Aichats key={`bot-${index}-${chat.text}`} text={chat.text} />
           )
         ))}
 
