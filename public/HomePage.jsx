@@ -112,7 +112,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900">
+    <div className="flex pt-7 flex-col h-screen bg-gray-900">
       <Header />
       
       <div className="flex-1 overflow-y-auto p-4 md:p-7 space-y-4">
