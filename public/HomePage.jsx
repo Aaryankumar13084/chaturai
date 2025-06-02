@@ -18,6 +18,15 @@ const HomePage = () => {
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Clear all state when component mounts (page loads)
+  useEffect(() => {
+    setChats([]);
+    setInputValue('');
+    setError(null);
+    setIsLoading(false);
+    setCurrentKeyIndex(0);
+  }, []);
+
   // Prepare conversation history for context
   const getConversationContext = () => {
     return chats
@@ -41,7 +50,7 @@ const HomePage = () => {
 
     while (retries < maxRetries) {
       const apiKey = GEMINI_API_KEYS[currentKeyIndex];
-      
+
       try {
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -68,7 +77,7 @@ const HomePage = () => {
         const data = await response.json();
         const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || 
                       "I couldn't process that request. Please try again.";
-        
+
         setChats(prev => [...prev, { sender: 'bot', text: answer }]);
         setCurrentKeyIndex((prev) => (prev + 1) % GEMINI_API_KEYS.length);
         setIsLoading(false);
@@ -114,7 +123,7 @@ const HomePage = () => {
   return (
     <div className="flex pt-13 flex-col h-screen bg-gray-900">
       <Header />
-      
+
       <div className="flex-1 overflow-y-auto p-4 md:p-7 space-y-4">
         {chats.map((chat, index) => (
           chat.sender === 'user' ? (
