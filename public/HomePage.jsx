@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
 import Header from './comp/Header';
 import Aichats from './comp/Aichats';
 import Userchat from './comp/Userchat';
@@ -11,28 +10,56 @@ const GEMINI_API_KEYS = [
   'AIzaSyDLEO_ekHu_HUwZz82QfmGqiKUny_Oxz-U'
 ];
 
+// Cache for common responses
+const COMMON_RESPONSES = {
+  'hi': 'Hi there! How can I help you today?',
+  'hello': 'Hello! What can I do for you?',
+  'how are you': "I'm an AI assistant, so I don't have feelings, but I'm functioning well! How can I help you today?",
+  'what can you do': 'I can answer questions, help with research, and assist with various topics. What would you like to know?'
+};
+
 const HomePage = () => {
   // State management
   const [inputValue, setInputValue] = useState('');
   const [chats, setChats] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currentKeyIndex, setCurrentKeyIndex] = useState(0);
+  const [usageCount, setUsageCount] = useState(0);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // API call to Gemini with retry logic
+  // Check cached responses first
+  const getCachedResponse = (prompt) => {
+    const lowerPrompt = prompt.toLowerCase().trim();
+    return COMMON_RESPONSES[lowerPrompt] || null;
+  };
+
+  // API call to Gemini with retry logic and key rotation
   const getAnswer = async (prompt) => {
     if (!prompt.trim()) return;
 
+    // Check cache first
+    const cachedResponse = getCachedResponse(prompt);
+    if (cachedResponse) {
+      setChats(prev => [...prev, 
+        { sender: 'user', text: prompt },
+        { sender: 'bot', text: cachedResponse }
+      ]);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
-    setChats((prev) => [...prev, { sender: 'user', text: prompt }]);
+    setChats(prev => [...prev, { sender: 'user', text: prompt }]);
     setInputValue('');
 
     let lastError = null;
+    let retryDelay = 1000; // Initial retry delay
 
-    for (let i = 0; i < GEMINI_API_KEYS.length; i++) {
-      const apiKey = GEMINI_API_KEYS[i];
+    // Try each key with exponential backoff
+    for (let attempts = 0; attempts < GEMINI_API_KEYS.length * 2; attempts++) {
+      const apiKey = GEMINI_API_KEYS[currentKeyIndex];
 
       try {
         const response = await fetch(
@@ -45,6 +72,13 @@ const HomePage = () => {
             })
           }
         );
+
+        if (response.status === 429) { // Rate limited
+          console.warn(`Rate limited on key ${currentKeyIndex + 1}, delaying...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          retryDelay *= 2; // Exponential backoff
+          continue;
+        }
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -60,23 +94,37 @@ const HomePage = () => {
         }
 
         const answer = data.candidates[0].content.parts[0].text;
-        setChats((prev) => [...prev, { sender: 'bot', text: answer }]);
+        setChats(prev => [...prev, { sender: 'bot', text: answer }]);
+        setUsageCount(prev => prev + 1);
+        
+        // Rotate key after every 3 successful requests
+        if (usageCount >= 2) {
+          setCurrentKeyIndex((prev) => (prev + 1) % GEMINI_API_KEYS.length);
+          setUsageCount(0);
+        }
+        
         return; // Success - exit the function
       } catch (error) {
         lastError = error;
-        console.error(`API Key ${i + 1} error:`, error);
+        console.error(`API Key ${currentKeyIndex + 1} error:`, error);
+        
+        // Rotate to next key on error
+        setCurrentKeyIndex((prev) => (prev + 1) % GEMINI_API_KEYS.length);
+        setUsageCount(0);
       }
     }
 
-    // If all keys failed
-    setError('Failed to get response from all API endpoints. Please try again later.');
-    setChats((prev) => [
+    // If all attempts failed
+    setError('Failed to get response after multiple attempts. Please try again later.');
+    setChats(prev => [
       ...prev,
       { 
         sender: 'bot', 
-        text: 'Sorry, I encountered an error processing your request. Please try again later.' 
+        text: 'Sorry, I encountered an error processing your request. Please try a different question or try again later.' 
       }
     ]);
+    
+    setIsLoading(false);
   };
 
   // Auto-scroll to bottom and focus input
@@ -109,13 +157,13 @@ const HomePage = () => {
 
       {/* Chat Display Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-7 space-y-4">
-        {chats.map((chat, index) => (
+        {chats.map((chat, index) =>
           chat.sender === 'user' ? (
-            <Userchat key={`user-${index}`} usertext={chat.text} />
+            <Userchat key={`user-${index}-${Date.now()}`} usertext={chat.text} />
           ) : (
-            <Aichats key={`bot-${index}`} text={chat.text} />
+            <Aichats key={`bot-${index}-${Date.now()}`} text={chat.text} />
           )
-        ))}
+        )}
 
         {/* Loading Indicator */}
         {isLoading && (
