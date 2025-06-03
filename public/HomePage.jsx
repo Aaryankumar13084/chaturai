@@ -122,7 +122,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="flex pt-13 flex-col h-screen bg-gray-900 text-white">
+    <div className="flex pt-13 flex-col h-screen bg-black text-white">
       <Header />
 
       <div className="flex-1 overflow-y-auto p-4 md:p-7 space-y-4 text-white">
