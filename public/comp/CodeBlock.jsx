@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+
 const CodeBlock = ({ code, language }) => {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(code)
+    // Final cleaning of the code before copying
+    const cleanCode = code
+      .replace(/^\d+\.\s*/, '')  // Remove numbered prefixes
+      .replace(/^\*\*/, '')      // Remove leading **
+      .replace(/\*\*$/, '')      // Remove trailing **
+      .replace(/^\*\s*/, '')     // Remove leading * and spaces
+      .replace(/\*\s*$/, '')     // Remove trailing * and spaces
+      .trim();
+
+    navigator.clipboard.writeText(cleanCode)
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -41,7 +50,9 @@ const CodeBlock = ({ code, language }) => {
         </button>
       </div>
       <pre className="overflow-x-auto p-4 text-sm">
-        <code>{code}</code>
+        <code>
+          {code.replace(/^\d+\.\s*/, '')}  {/* Remove numbered prefixes for display */}
+        </code>
       </pre>
     </div>
   );
