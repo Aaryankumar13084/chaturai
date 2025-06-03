@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark.css';
 import Header from './comp/Header';
 import Aichats from './comp/Aichats';
 import Userchat from './comp/Userchat';
@@ -130,7 +132,52 @@ const HomePage = () => {
           chat.sender === 'user' ? (
             <Userchat key={`user-${index}-${chat.text}`} usertext={chat.text} />
           ) : (
-            <Aichats key={`bot-${index}-${chat.text}`} text={chat.text} />
+            <div key={`bot-${index}-${chat.text}`} className="flex space-x-3">
+              <div className="flex-shrink-0">
+                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                  AI
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <ReactMarkdown 
+                  rehypePlugins={[rehypeHighlight]}
+                  className="text-white text-sm md:text-base"
+                  components={{
+                    code({node, inline, className, children, ...props}) {
+                      const match = /language-(\w+)/.exec(className || '');
+                      return !inline ? (
+                        <div className="relative bg-gray-800 rounded-lg my-2">
+                          <div className="flex justify-between items-center bg-gray-700 px-4 py-2 rounded-t-lg">
+                            <span className="text-xs text-gray-300">
+                              {match?.[1] || 'code'}
+                            </span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(String(children).replace(/\n$/, ''))
+                              }}
+                              className="text-xs text-gray-300 hover:text-white"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                          <pre className="overflow-x-auto p-4">
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
+                          </pre>
+                        </div>
+                      ) : (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      );
+                    }
+                  }}
+                >
+                  {chat.text}
+                </ReactMarkdown>
+              </div>
+            </div>
           )
         ))}
 
