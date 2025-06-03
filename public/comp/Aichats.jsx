@@ -1,6 +1,6 @@
 import React from 'react';
 import CodeBlock from './CodeBlock';
-
+import ReactMarkdown from 'react-markdown';
 const Aichats = ({ text }) => {
   // Enhanced regex to handle:
   // 1. Regular code blocks (```code```)
