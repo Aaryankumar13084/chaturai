@@ -21,7 +21,6 @@ const HomePage = () => {
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Clear all state when component mounts (page loads)
   useEffect(() => {
     setChats([]);
     setInputValue('');
@@ -30,7 +29,6 @@ const HomePage = () => {
     setCurrentKeyIndex(0);
   }, []);
 
-  // Prepare conversation history for context
   const getConversationContext = () => {
     return chats
       .map(chat => `${chat.sender === 'user' ? 'User' : 'AI'}: ${chat.text}`)
@@ -124,10 +122,10 @@ const HomePage = () => {
   };
 
   return (
-    <div className="flex pt-13 flex-col h-screen bg-gray-900">
+    <div className="flex pt-13 flex-col h-screen bg-gray-900 text-white">
       <Header />
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-7 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 md:p-7 space-y-4 text-white">
         {chats.map((chat, index) => (
           chat.sender === 'user' ? (
             <Userchat key={`user-${index}-${chat.text}`} usertext={chat.text} />
@@ -148,14 +146,14 @@ const HomePage = () => {
                       return !inline ? (
                         <div className="relative bg-gray-800 rounded-lg my-2">
                           <div className="flex justify-between items-center bg-gray-700 px-4 py-2 rounded-t-lg">
-                            <span className="text-xs text-gray-300">
+                            <span className="text-xs text-white">
                               {match?.[1] || 'code'}
                             </span>
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(String(children).replace(/\n$/, ''))
                               }}
-                              className="text-xs text-gray-300 hover:text-white"
+                              className="text-xs text-white hover:text-white"
                             >
                               Copy
                             </button>
