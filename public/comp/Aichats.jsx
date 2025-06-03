@@ -65,16 +65,19 @@ const Aichats = ({ text }) => {
                 key={`text-${index}`}
                 rehypePlugins={[rehypeHighlight]}
                 components={{
-                  p: ({node, ...props}) => <p className="whitespace-pre-wrap" {...props} />,
-                  ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
-                  ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
-                  li: ({node, ...props}) => <li className="my-1" {...props} />,
-                  strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
-                  em: ({node, ...props}) => <em className="italic" {...props} />,
+                  p: ({node, ...props}) => <p className="whitespace-pre-wrap text-white" {...props} />,
+                  ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2 text-white" {...props} />,
+                  ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2 text-white" {...props} />,
+                  li: ({node, ...props}) => <li className="my-1 text-white" {...props} />,
+                  strong: ({node, ...props}) => <strong className="font-semibold text-white" {...props} />,
+                  em: ({node, ...props}) => <em className="italic text-white" {...props} />,
+                  h1: ({node, ...props}) => <h1 className="text-2xl font-bold my-2 text-white" {...props} />,
+                  h2: ({node, ...props}) => <h2 className="text-xl font-bold my-2 text-white" {...props} />,
+                  h3: ({node, ...props}) => <h3 className="text-lg font-bold my-2 text-white" {...props} />,
                   code({node, inline, className, children, ...props}) {
                     if (inline) {
                       return (
-                        <code className="bg-gray-700 px-1 py-0.5 rounded text-sm" {...props}>
+                        <code className="bg-gray-700 px-1 py-0.5 rounded text-sm text-white" {...props}>
                           {children}
                         </code>
                       );
