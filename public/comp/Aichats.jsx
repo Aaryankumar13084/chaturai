@@ -43,15 +43,17 @@ const Aichats = ({ text }) => {
         </div>
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-white text-sm md:text-base">
+        <div className="bg-gray-700 rounded-lg p-4 text-sm md:text-base">
           {parts.map((part, index) => {
             if (part.type === 'code') {
               return (
-                <CodeBlock
-                  key={`code-${index}`}
-                  code={part.content}
-                  language={part.language}
-                />
+                <div className="my-2">
+                  <CodeBlock
+                    key={`code-${index}`}
+                    code={part.content}
+                    language={part.language}
+                  />
+                </div>
               );
             }
 
@@ -90,13 +92,16 @@ const Aichats = ({ text }) => {
                   code({ node, inline, className, children, ...props }) {
                     if (inline) {
                       return (
-                        <code className="bg-gray-700 px-1 py-0.5 rounded text-sm text-white" {...props}>
+                        <code className="bg-gray-600 px-1 py-0.5 rounded text-sm text-white" {...props}>
                           {children}
                         </code>
                       );
                     }
                     return null;
-                  }
+                  },
+                  pre: ({ node, ...props }) => (
+                    <div className="my-2" {...props} />
+                  )
                 }}
               >
                 {part.content}
