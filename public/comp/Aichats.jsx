@@ -1,12 +1,12 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark.css';
 import CodeBlock from './CodeBlock';
 
 const Aichats = ({ text }) => {
-  // Enhanced regex to handle:
-  // 1. Regular code blocks (```code```)
-  // 2. Inline code with asterisks (**`code`**)
-  // 3. Numbered/bullet points with code
-  const codeBlockRegex = /(?:```|\*\*`)(\w+)?\n?([\s\S]+?)(?:```|\*\*`)/g;
+  // Enhanced regex to handle markdown code blocks
+  const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g;
   
   // Split the text into parts, separating code blocks from regular text
   const parts = [];
@@ -22,23 +22,11 @@ const Aichats = ({ text }) => {
       });
     }
     
-    // Clean the code content
-    let cleanContent = match[2]
-      .replace(/^\*\*/, '')      // Remove leading **
-      .replace(/\*\*$/, '')      // Remove trailing **
-      .replace(/^\*\s*/, '')     // Remove leading * and spaces
-      .replace(/\*\s*$/, '')     // Remove trailing * and spaces
-      .trim();
-    
-    // Handle numbered/bullet points with code
-    if (cleanContent.match(/^\d+\.\s*\*\*/)) {
-      cleanContent = cleanContent.replace(/^\d+\.\s*\*\*/, '').replace(/\*\*:\s*/, '');
-    }
-
+    // Add the code block
     parts.push({
       type: 'code',
       language: match[1] || '',
-      content: cleanContent
+      content: match[2].trim()
     });
     
     lastIndex = match.index + match[0].length;
@@ -51,7 +39,7 @@ const Aichats = ({ text }) => {
       content: text.substring(lastIndex)
     });
   }
-  
+
   return (
     <div className="flex space-x-3">
       <div className="flex-shrink-0">
@@ -72,20 +60,31 @@ const Aichats = ({ text }) => {
               );
             }
             
-            // Handle numbered/bullet points in regular text
-            const lines = part.content.split('\n');
             return (
-              <div key={`text-${index}`} className="whitespace-pre-wrap">
-                {lines.map((line, i) => {
-                  if (line.match(/^\d+\.\s*\*\*/)) {
-                    const cleanLine = line
-                      .replace(/^(\d+\.)\s*\*\*/, '$1 ')
-                      .replace(/\*\*:\s*/, '');
-                    return <p key={i}>{cleanLine}</p>;
+              <ReactMarkdown
+                key={`text-${index}`}
+                rehypePlugins={[rehypeHighlight]}
+                components={{
+                  p: ({node, ...props}) => <p className="whitespace-pre-wrap" {...props} />,
+                  ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
+                  ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
+                  li: ({node, ...props}) => <li className="my-1" {...props} />,
+                  strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
+                  em: ({node, ...props}) => <em className="italic" {...props} />,
+                  code({node, inline, className, children, ...props}) {
+                    if (inline) {
+                      return (
+                        <code className="bg-gray-700 px-1 py-0.5 rounded text-sm" {...props}>
+                          {children}
+                        </code>
+                      );
+                    }
+                    return null; // Block code handled by CodeBlock component
                   }
-                  return <p key={i}>{line}</p>;
-                })}
-              </div>
+                }}
+              >
+                {part.content}
+              </ReactMarkdown>
             );
           })}
         </div>
