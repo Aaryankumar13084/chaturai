@@ -1,10 +1,12 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
 import CodeBlock from './CodeBlock';
 
 const Aichats = ({ text }) => {
-  // This regex matches code blocks in markdown format (```language\ncode\n```)
-  const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g;
+  // Enhanced regex to handle:
+  // 1. Regular code blocks (```code```)
+  // 2. Inline code with asterisks (**`code`**)
+  // 3. Numbered/bullet points with code
+  const codeBlockRegex = /(?:```|\*\*`)(\w+)?\n?([\s\S]+?)(?:```|\*\*`)/g;
   
   // Split the text into parts, separating code blocks from regular text
   const parts = [];
@@ -20,11 +22,23 @@ const Aichats = ({ text }) => {
       });
     }
     
-    // Add the code block
+    // Clean the code content
+    let cleanContent = match[2]
+      .replace(/^\*\*/, '')      // Remove leading **
+      .replace(/\*\*$/, '')      // Remove trailing **
+      .replace(/^\*\s*/, '')     // Remove leading * and spaces
+      .replace(/\*\s*$/, '')     // Remove trailing * and spaces
+      .trim();
+    
+    // Handle numbered/bullet points with code
+    if (cleanContent.match(/^\d+\.\s*\*\*/)) {
+      cleanContent = cleanContent.replace(/^\d+\.\s*\*\*/, '').replace(/\*\*:\s*/, '');
+    }
+
     parts.push({
       type: 'code',
       language: match[1] || '',
-      content: match[2]
+      content: cleanContent
     });
     
     lastIndex = match.index + match[0].length;
@@ -57,10 +71,21 @@ const Aichats = ({ text }) => {
                 />
               );
             }
+            
+            // Handle numbered/bullet points in regular text
+            const lines = part.content.split('\n');
             return (
-              <p key={`text-${index}`} className="whitespace-pre-wrap">
-                {part.content}
-              </p>
+              <div key={`text-${index}`} className="whitespace-pre-wrap">
+                {lines.map((line, i) => {
+                  if (line.match(/^\d+\.\s*\*\*/)) {
+                    const cleanLine = line
+                      .replace(/^(\d+\.)\s*\*\*/, '$1 ')
+                      .replace(/\*\*:\s*/, '');
+                    return <p key={i}>{cleanLine}</p>;
+                  }
+                  return <p key={i}>{line}</p>;
+                })}
+              </div>
             );
           })}
         </div>
