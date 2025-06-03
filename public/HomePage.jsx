@@ -3,7 +3,6 @@ import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import Header from './comp/Header';
-import Aichats from './comp/Aichats';
 import Userchat from './comp/Userchat';
 
 const GEMINI_API_KEYS = [
@@ -11,6 +10,23 @@ const GEMINI_API_KEYS = [
   'AIzaSyBbnp5cWE5dPYmxQZMbJ3mKwq2fcqjLCno',
   'AIzaSyDLEO_ekHu_HUwZz82QfmGqiKUny_Oxz-U'
 ];
+
+// Helper function to extract text from React nodes
+const getTextFromChildren = (children) => {
+  if (typeof children === 'string') {
+    return children;
+  }
+  
+  if (Array.isArray(children)) {
+    return children.map(child => getTextFromChildren(child)).join('');
+  }
+  
+  if (children && children.props && children.props.children) {
+    return getTextFromChildren(children.props.children);
+  }
+  
+  return '';
+};
 
 const HomePage = () => {
   const [inputValue, setInputValue] = useState('');
@@ -170,28 +186,45 @@ const HomePage = () => {
                       ),
                       code({node, inline, className, children, ...props}) {
                         const match = /language-(\w+)/.exec(className || '');
-                        return !inline ? (
-                          <div className="relative bg-gray-800 rounded-lg my-2">
-                            <div className="flex justify-between items-center bg-gray-700 px-4 py-2 rounded-t-lg">
-                              <span className="text-xs text-white">
-                                {match?.[1] || 'code'}
-                              </span>
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(String(children).replace(/\n$/, ''))
-                                }}
-                                className="text-xs text-white hover:text-blue-300"
-                              >
-                                Copy
-                              </button>
+                        
+                        if (!inline) {
+                          return (
+                            <div className="relative bg-gray-800 rounded-lg my-2">
+                              <div className="flex justify-between items-center bg-gray-700 px-4 py-2 rounded-t-lg">
+                                <span className="text-xs text-white">
+                                  {match?.[1] || 'code'}
+                                </span>
+                                <button
+                                  onClick={(event) => {
+                                    const codeContent = getTextFromChildren(children).replace(/\n$/, '');
+                                    navigator.clipboard.writeText(codeContent)
+                                      .then(() => {
+                                        const button = event.currentTarget;
+                                        const originalText = button.textContent;
+                                        button.textContent = 'Copied!';
+                                        setTimeout(() => {
+                                          button.textContent = originalText;
+                                        }, 2000);
+                                      })
+                                      .catch(err => {
+                                        console.error('Failed to copy: ', err);
+                                      });
+                                  }}
+                                  className="text-xs text-white hover:text-blue-300"
+                                >
+                                  Copy
+                                </button>
+                              </div>
+                              <pre className="overflow-x-auto p-4">
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              </pre>
                             </div>
-                            <pre className="overflow-x-auto p-4">
-                              <code className={className} {...props}>
-                                {children}
-                              </code>
-                            </pre>
-                          </div>
-                        ) : (
+                          );
+                        }
+                        
+                        return (
                           <code className="bg-gray-600 px-1 py-0.5 rounded text-sm" {...props}>
                             {children}
                           </code>
