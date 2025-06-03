@@ -4,16 +4,7 @@ const CodeBlock = ({ code, language }) => {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
-    // Final cleaning of the code before copying
-    const cleanCode = code
-      .replace(/^\d+\.\s*/, '')  // Remove numbered prefixes
-      .replace(/^\*\*/, '')      // Remove leading **
-      .replace(/\*\*$/, '')      // Remove trailing **
-      .replace(/^\*\s*/, '')     // Remove leading * and spaces
-      .replace(/\*\s*$/, '')     // Remove trailing * and spaces
-      .trim();
-
-    navigator.clipboard.writeText(cleanCode)
+    navigator.clipboard.writeText(code)
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -50,8 +41,8 @@ const CodeBlock = ({ code, language }) => {
         </button>
       </div>
       <pre className="overflow-x-auto p-4 text-sm">
-        <code>
-          {code.replace(/^\d+\.\s*/, '')}  {/* Remove numbered prefixes for display */}
+        <code className={`hljs language-${language || 'plaintext'}`}>
+          {code}
         </code>
       </pre>
     </div>
