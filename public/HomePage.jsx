@@ -263,7 +263,7 @@ const HomePage = () => {
         <div ref={chatEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 bg-gray-800 border-t border-gray-700">
+       <form onSubmit={handleSubmit} className="p-4 bg-gray-800 border-t border-gray-700">
         <div className="flex items-center space-x-2">
           <input
             ref={inputRef}
