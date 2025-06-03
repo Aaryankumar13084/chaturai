@@ -1,27 +1,68 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
+import CodeBlock from './CodeBlock';
 
 const Aichats = ({ text }) => {
+  // This regex matches code blocks in markdown format (```language\ncode\n```)
+  const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g;
+  
+  // Split the text into parts, separating code blocks from regular text
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = codeBlockRegex.exec(text)) !== null) {
+    // Add text before the code block
+    if (match.index > lastIndex) {
+      parts.push({
+        type: 'text',
+        content: text.substring(lastIndex, match.index)
+      });
+    }
+    
+    // Add the code block
+    parts.push({
+      type: 'code',
+      language: match[1] || '',
+      content: match[2]
+    });
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text after the last code block
+  if (lastIndex < text.length) {
+    parts.push({
+      type: 'text',
+      content: text.substring(lastIndex)
+    });
+  }
+  
   return (
-    <div className="flex items-start space-x-2 w-[80%]">
-      <div className="bg-blue-600 text-white p-2 rounded-full">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-            clipRule="evenodd"
-          />
-        </svg>
+    <div className="flex space-x-3">
+      <div className="flex-shrink-0">
+        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+          AI
+        </div>
       </div>
-      <div className="flex-1 bg-gray-800 p-4 rounded-lg text-white">
-        <ReactMarkdown className="prose prose-invert max-w-none">
-          {text}
-        </ReactMarkdown>
+      <div className="flex-1 min-w-0">
+        <div className="text-white text-sm md:text-base">
+          {parts.map((part, index) => {
+            if (part.type === 'code') {
+              return (
+                <CodeBlock 
+                  key={`code-${index}`}
+                  code={part.content}
+                  language={part.language}
+                />
+              );
+            }
+            return (
+              <p key={`text-${index}`} className="whitespace-pre-wrap">
+                {part.content}
+              </p>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
