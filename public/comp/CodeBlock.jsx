@@ -40,7 +40,7 @@ const CodeBlock = ({ code, language }) => {
           )}
         </button>
       </div>
-      <pre className="overflow-x-auto p-4 text-sm">
+      <pre className="text-white overflow-x-auto p-4 text-sm">
         <code className={`hljs language-${language || 'plaintext'}`}>
           {code}
         </code>
