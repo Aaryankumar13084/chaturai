@@ -125,7 +125,7 @@ const HomePage = () => {
     <div className="flex pt-13 flex-col h-screen bg-black text-white">
       <Header />
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-7 space-y-4 text-white">
+      <div className="flex-1 overflow-y-auto p-4 md:p-7 space-y-4">
         {chats.map((chat, index) => (
           chat.sender === 'user' ? (
             <Userchat key={`user-${index}-${chat.text}`} usertext={chat.text} />
@@ -137,43 +137,71 @@ const HomePage = () => {
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <ReactMarkdown 
-                  rehypePlugins={[rehypeHighlight]}
-                  className="text-white text-sm md:text-base"
-                  components={{
-                    code({node, inline, className, children, ...props}) {
-                      const match = /language-(\w+)/.exec(className || '');
-                      return !inline ? (
-                        <div className="relative bg-gray-800 rounded-lg my-2">
-                          <div className="flex justify-between items-center bg-gray-700 px-4 py-2 rounded-t-lg">
-                            <span className="text-xs text-white">
-                              {match?.[1] || 'code'}
-                            </span>
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(String(children).replace(/\n$/, ''))
-                              }}
-                              className="text-xs text-white hover:text-white"
-                            >
-                              Copy
-                            </button>
+                <div className="bg-gray-700 rounded-lg p-4 text-white">
+                  <ReactMarkdown 
+                    rehypePlugins={[rehypeHighlight]}
+                    components={{
+                      p: ({ node, ...props }) => (
+                        <p className="whitespace-pre-wrap my-2 leading-relaxed" {...props} />
+                      ),
+                      ul: ({ node, ...props }) => (
+                        <ul className="list-disc pl-5 my-2" {...props} />
+                      ),
+                      ol: ({ node, ...props }) => (
+                        <ol className="list-decimal pl-5 my-2" {...props} />
+                      ),
+                      li: ({ node, ...props }) => (
+                        <li className="my-1" {...props} />
+                      ),
+                      strong: ({ node, ...props }) => (
+                        <strong className="font-semibold" {...props} />
+                      ),
+                      em: ({ node, ...props }) => (
+                        <em className="italic" {...props} />
+                      ),
+                      h1: ({ node, ...props }) => (
+                        <h1 className="text-2xl font-bold my-4" {...props} />
+                      ),
+                      h2: ({ node, ...props }) => (
+                        <h2 className="text-xl font-bold my-3" {...props} />
+                      ),
+                      h3: ({ node, ...props }) => (
+                        <h3 className="text-lg font-bold my-2" {...props} />
+                      ),
+                      code({node, inline, className, children, ...props}) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return !inline ? (
+                          <div className="relative bg-gray-800 rounded-lg my-2">
+                            <div className="flex justify-between items-center bg-gray-700 px-4 py-2 rounded-t-lg">
+                              <span className="text-xs text-white">
+                                {match?.[1] || 'code'}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(String(children).replace(/\n$/, ''))
+                                }}
+                                className="text-xs text-white hover:text-blue-300"
+                              >
+                                Copy
+                              </button>
+                            </div>
+                            <pre className="overflow-x-auto p-4">
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            </pre>
                           </div>
-                          <pre className="overflow-x-auto p-4">
-                            <code className={className} {...props}>
-                              {children}
-                            </code>
-                          </pre>
-                        </div>
-                      ) : (
-                        <code className={className} {...props}>
-                          {children}
-                        </code>
-                      );
-                    }
-                  }}
-                >
-                  {chat.text}
-                </ReactMarkdown>
+                        ) : (
+                          <code className="bg-gray-600 px-1 py-0.5 rounded text-sm" {...props}>
+                            {children}
+                          </code>
+                        );
+                      }
+                    }}
+                  >
+                    {chat.text}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           )
