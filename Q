@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<base href="/web-tech-quiz/"> <!-- Auto generated base tag by CodeKings-->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Stylish Web Tech Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fadeInUp {
+        animation: fadeInUp 0.5s ease-out both;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-tr from-purple-300 via-indigo-200 to-pink-300 min-h-screen flex items-center justify-center font-sans"
+  >
+    <!-- Intro / Welcome Page -->
+    <div
+      id="intro"
+      class="bg-white max-w-lg w-full p-8 rounded-3xl shadow-2xl text-center animate-fadeInUp"
+    >
+      <h1 class="text-5xl font-extrabold text-indigo-600 mb-4">
+        🎓 Web Tech Quiz
+      </h1>
+      <div
+        class="inline-block bg-gradient-to-r from-pink-400 to-yellow-300 text-white text-lg px-4 py-1 rounded-full mb-6"
+      >
+        Max 20 Points
+      </div>
+      <p class="text-gray-700 leading-relaxed mb-6">
+        ⚡इस क्विज़ में HTML, CSS, JavaScript & Tailwind CSS से जुड़े
+        <strong>20 प्रश्न</strong> होंगे।<br />
+        ⚡हर प्रश्न के लिए मिलेगा <strong>15 सेकंड</strong> और हर सही उत्तर पर
+        मिलेगा <span class="text-green-600 font-bold">+1 पॉइंट</span>।<br />
+        ⚡गलत उत्तर पर कोई पॉइंट नहीं मिलेगा।<br />
+        ⚡अंत में आपका total स्कोर <span id="prize">0</span> मिलेगा! 🎉
+      </p>
+      <button
+        onclick="startQuiz()"
+        class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition"
+      >
+        🚀 Start Quiz
+      </button>
+    </div>
+    <!-- Quiz Page -->
+    <div
+      id="quiz-container"
+      class="hidden bg-white max-w-2xl w-full p-8 rounded-3xl shadow-2xl space-y-6 animate-fadeInUp"
+    >
+      <div class="flex justify-between items-center">
+        <div class="text-lg font-semibold text-indigo-700">
+          Question <span id="q-number">1</span>/20
+        </div>
+        <div
+          class="text-lg font-semibold text-pink-600 bg-pink-100 px-4 py-1 rounded-full"
+        >
+          ⏰ <span id="timer">15</span>s
+        </div>
+      </div>
+      <div
+        id="question-text"
+        class="text-2xl font-bold text-gray-800 min-h-[4.5rem]"
+      ></div>
+      <div id="options" class="grid grid-cols-1 gap-5"></div>
+      <button
+        id="next-btn"
+        disabled
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-semibold py-3 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+      >
+        Next
+      </button>
+      <div
+        id="result"
+        class="text-center text-3xl font-extrabold text-indigo-800 mt-6"
+      ></div>
+    </div>
+    <script>
+      const intro = document.getElementById("intro");
+      const quiz = document.getElementById("quiz-container");
+      const prizeSpan = document.getElementById("prize");
+
+      const questions = [
+        {
+          q: "HTML में एक heading tag कौन सा है?",
+          opts: ["<h1>", "<p>", "<div>", "<span>"],
+          ans: 0,
+        },
+        {
+          q: "CSS में ID selector को कैसे select करते हैं?",
+          opts: [".idname", "#idname", "idname", "*id"],
+          ans: 1,
+        },
+        {
+          q: "JavaScript में array कैसे declare करते हैं?",
+          opts: ["let arr = []", "let arr = {}", "let arr = ()", "array()"],
+          ans: 0,
+        },
+        {
+          q: "Tailwind में background blue class क्या है?",
+          opts: ["bg-blue-500", "background-blue", "blue-bg", "bg-blue"],
+          ans: 0,
+        },
+        {
+          q: "HTML में image insert के लिए correct tag?",
+          opts: ["<img src='...'/>", "<image>", "<insert>", "<media>"],
+          ans: 0,
+        },
+        {
+          q: "CSS में flexbox enable करने की property?",
+          opts: ["display: flex", "flex: 1", "box-flex", "flexbox: on"],
+          ans: 0,
+        },
+        {
+          q: "JavaScript में function कैसे call करते हैं?",
+          opts: ["call func()", "function()", "invoke func", "trigger func"],
+          ans: 1,
+        },
+        {
+          q: "Tailwind में padding के लिए class?",
+          opts: ["p-4", "padding-4", "pd-4", "pad-4"],
+          ans: 0,
+        },
+        {
+          q: "HTML form submit बटन tag?",
+          opts: [
+            "<button type='submit'>",
+            "<input submit>",
+            "<send>",
+            "<form>",
+          ],
+          ans: 0,
+        },
+        {
+          q: "CSS में hover effect कैसे देते हैं?",
+          opts: [":hover", "::hover", "hover()", ".hovered"],
+          ans: 0,
+        },
+        {
+          q: "JS में constant keyword?",
+          opts: ["const x = 5", "var x = 5", "let x = 5", "immutable"],
+          ans: 0,
+        },
+        {
+          q: "Tailwind में red text color?",
+          opts: ["text-red-600", "red-text", "txt-red", "text-600-red"],
+          ans: 0,
+        },
+        {
+          q: "HTML link टैग क्या है?",
+          opts: ["<a>", "<link>", "<href>", "<url>"],
+          ans: 0,
+        },
+        {
+          q: "CSS box model के parts क्या हैं?",
+          opts: [
+            "content,padding,border,margin",
+            "padding,border,shadow,margin",
+            "content,border,padding,outline",
+            "margin,padding,border,outline",
+          ],
+          ans: 0,
+        },
+        {
+          q: "JavaScript में event listener method?",
+          opts: [
+            "addEventListener()",
+            "onClick()",
+            "attachEvent()",
+            "listen()",
+          ],
+          ans: 0,
+        },
+        {
+          q: "Tailwind में text size class?",
+          opts: ["text-xl", "font-xl", "txt-xl", "text-big"],
+          ans: 0,
+        },
+        {
+          q: "HTML में comment कैसे लिखते हैं?",
+          opts: [
+            "<!-- comment -->",
+            "// comment",
+            "/* comment */",
+            "# comment",
+          ],
+          ans: 0,
+        },
+        {
+          q: "CSS में inline style देने का तरीका?",
+          opts: [
+            'style="color:red"',
+            'class="red"',
+            'css("color:red")',
+            "None",
+          ],
+          ans: 0,
+        },
+        {
+          q: "JS में variable declaration keyword?",
+          opts: [
+            "var, let, const",
+            "dim, let, set",
+            "var,set,const",
+            "let,const,define",
+          ],
+          ans: 0,
+        },
+        {
+          q: "Tailwind में grid layout class?",
+          opts: ["grid", "flex", "block", "container"],
+          ans: 0,
+        },
+      ];
+      let current = 0,
+        score = 0,
+        timerId;
+      const timeLimit = 15;
+
+      const qNumEl = document.getElementById("q-number");
+      const qTextEl = document.getElementById("question-text");
+      const optsEl = document.getElementById("options");
+      const timerEl = document.getElementById("timer");
+      const nextBtn = document.getElementById("next-btn");
+      const resultEl = document.getElementById("result");
+
+      prizeSpan.textContent = questions.length;
+
+      function startQuiz() {
+        intro.classList.add("hidden");
+        quiz.classList.remove("hidden");
+        loadQuestion();
+      }
+
+      function loadQuestion() {
+        clearInterval(timerId);
+        resultEl.textContent = "";
+        nextBtn.disabled = true;
+        const q = questions[current];
+        qNumEl.textContent = current + 1;
+        qTextEl.textContent = q.q;
+        optsEl.innerHTML = "";
+
+        q.opts.forEach((opt, i) => {
+          const btn = document.createElement("button");
+          btn.textContent = opt;
+          btn.className =
+            "option-btn w-full px-5 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold transition hover:bg-indigo-100";
+          btn.onclick = () => selectAnswer(i);
+          optsEl.appendChild(btn);
+        });
+
+        let t = timeLimit;
+        timerEl.textContent = t;
+        timerId = setInterval(() => {
+          t--;
+          timerEl.textContent = t;
+          if (t <= 0) {
+            clearInterval(timerId);
+            showCorrect();
+          }
+        }, 1000);
+      }
+      function selectAnswer(idx) {
+        clearInterval(timerId);
+        const corr = questions[current].ans;
+        document.querySelectorAll(".option-btn").forEach((btn, i) => {
+          btn.disabled = true;
+          btn.classList.remove("hover:bg-indigo-100");
+          if (i === corr) btn.classList.add("bg-green-500", "text-white");
+          if (i === idx && i !== corr)
+            btn.classList.add("bg-red-500", "text-white");
+        });
+        if (idx === corr) score++;
+        nextBtn.disabled = false;
+      }
+
+      function showCorrect() {
+        const corr = questions[current].ans;
+        document.querySelectorAll(".option-btn").forEach((btn, i) => {
+          btn.disabled = true;
+          btn.classList.remove("hover:bg-indigo-100");
+          if (i === corr) btn.classList.add("bg-green-500", "text-white");
+        });
+        nextBtn.disabled = false;
+      }
+
+      nextBtn.onclick = () => {
+        current++;
+        if (current < questions.length) loadQuestion();
+        else endQuiz();
+      };
+
+      function endQuiz() {
+        quiz.innerHTML = `
+        <div class="text-center animate-fadeInUp p-8">
+          <h2 class="text-4xl font-extrabold mb-4 text-indigo-700">🎉 Quiz Complete!</h2>
+          <p class="text-3xl text-gray-800 mb-6">आपका स्कोर ${score} / ${questions.length}</p>
+          <button onclick="location.reload()"
+            class="bg-pink-600 hover:bg-pink-700 text-white py-3 px-8 rounded-full text-xl shadow-lg active:scale-95 transition">
+            Restart Quiz
+          </button>
+        </div>`;
+      }
+    </script>
+  </body>
+</html>
