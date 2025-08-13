@@ -1,7 +1,7 @@
 git init
 git remote add origin https://thetechyatrateam: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@github.com/tgetechyatrateam/QuickReel.git
 
-git remote add origin https://aaryankumar13084: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@github.com/aaryankumar13084/blood-donor.git
+git remote add origin https://aaryankumar13084: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@github.com/aaryankumar13084/blood-donor.git
 
 
 git add .
